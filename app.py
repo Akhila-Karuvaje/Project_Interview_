@@ -3,26 +3,8 @@ import google.generativeai as genai
 import os
 import speech_recognition as sr
 import pandas as pd
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 import re
 import json
-
-# === Extra imports for video evaluation ===
-import cv2
-import librosa
-import numpy as np
-from sentence_transformers import SentenceTransformer, util
-import whisper
-import mediapipe as mp
-
-# ----------------- CONFIG -----------------
-nltk.download('punkt_tab')
-nltk.download('punkt')
-nltk.download('stopwords')
 
 app = Flask(__name__)
 app.secret_key = 'my_super_secret_key_456789'
@@ -32,13 +14,7 @@ GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyACpD3waeAbKickkjJb7gBHq
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-2.0-flash')
 
-# Load ML models for video evaluation
-model_whisper = whisper.load_model("tiny")  
-model_bert = SentenceTransformer('all-MiniLM-L6-v2')
-
-# ============================================================
-# ===== Utility Functions (Audio Interview Part) =============
-# ============================================================
+# ------------------ Utility Functions ------------------
 
 def SpeechToText():
     r = sr.Recognizer()
@@ -59,19 +35,24 @@ def SpeechToText():
         return f"Unexpected error: {str(e)}"
 
 def clean_answer(answer):
+    import nltk
+    nltk.download('punkt', quiet=True)
+    nltk.download('stopwords', quiet=True)
+    from nltk.tokenize import word_tokenize
+    from nltk.corpus import stopwords
     words = word_tokenize(answer)
     stop_words = set(stopwords.words('english'))
     return ' '.join([word for word in words if word.lower() not in stop_words])
 
 def detect_fillers(text):
+    import nltk
+    nltk.download('punkt', quiet=True)
+    words = nltk.word_tokenize(text.lower())
     common_fillers = {"um", "uh", "like", "you know", "so", "actually", "basically", "literally", "well", "hmm"}
-    words = word_tokenize(text.lower())
     used_fillers = [w for w in words if w in common_fillers]
     return ", ".join(set(used_fillers)) if used_fillers else "None"
 
-# ============================================================
-# ===== Routes for Main Project (Gemini-based) ===============
-# ============================================================
+# ------------------ Routes ------------------
 
 @app.route('/')
 def index():
@@ -90,7 +71,6 @@ def regenerate_questions():
     job = session.get('job_title')
     level = session.get('difficulty')
 
-    # ✅ Always generate fresh questions from Gemini
     prompt = f"""
     Generate exactly 10 interview questions for the job role: {job} 
     with difficulty level: {level}. 
@@ -98,18 +78,14 @@ def regenerate_questions():
     Do not include any introduction or extra comments.
     """
     response = model.generate_content(prompt)
-
-    # ✅ Extract only the question texts
     raw_questions = response.text.strip().split("\n")
     questions = []
     for q in raw_questions:
         match = re.match(r'^\d+[\).\s-]+(.*)', q.strip())
         if match:
             questions.append(match.group(1).strip())
-
-    questions = questions[:10]  # ✅ Ensure only 10
-    session['questions'] = questions  # ✅ Save fresh set
-
+    questions = questions[:10]
+    session['questions'] = questions
     return redirect(url_for('questions'))
 
 @app.route('/questions')
@@ -200,9 +176,7 @@ def submit_answer(qid):
         'fillers_used': result.get('fillers_used', [])
     })
 
-# ============================================================
-# ===== Video Interview Routes ===============================
-# ============================================================
+# ------------------ Video Interview Routes ------------------
 
 @app.route('/video_interview')
 def video_interview():
@@ -218,11 +192,20 @@ def submit_video_answer(qid):
     filepath = os.path.join("uploads", f"answer_{qid}.webm")
     file.save(filepath)
 
-    # Step 1: Transcribe using Whisper
+    # -------- Lazy load heavy ML models --------
+    import whisper
+    model_whisper = whisper.load_model("tiny")
     result = model_whisper.transcribe(filepath)
     transcript = result['text']
 
-    # Step 2: Evaluate transcript with Gemini
+    from sentence_transformers import SentenceTransformer
+    model_bert = SentenceTransformer('all-MiniLM-L6-v2')
+
+    import nltk
+    nltk.download('punkt', quiet=True)
+    nltk.download('stopwords', quiet=True)
+
+    # Gemini evaluation
     prompt = f"""
     You are an expert interviewer. Analyze the user's answer and return only JSON in this format:
 
@@ -235,7 +218,6 @@ def submit_video_answer(qid):
     Question ID: {qid}
     User Answer: "{transcript}"
     """
-
     try:
         response = model.generate_content(prompt)
         raw_text = response.text.strip()
@@ -256,17 +238,12 @@ def submit_video_answer(qid):
             "Fluency Score": 0.0
         }
 
-    # Step 3: Calculate Final Evaluation (percentage)
-    try:
-        final_eval = round(
-            (scores["Confidence Score"] +
-             scores["Content Relevance"] +
-             scores["Fluency Score"]) / 3 * 100, 2
-        )
-    except Exception:
-        final_eval = 0.0
+    final_eval = round(
+        (scores["Confidence Score"] +
+         scores["Content Relevance"] +
+         scores["Fluency Score"]) / 3 * 100, 2
+    ) if scores else 0.0
 
-    # Step 4: Prepare response in required format
     return jsonify({
         "Confidence Score": scores["Confidence Score"],
         "Content Relevance": scores["Content Relevance"],
@@ -274,11 +251,9 @@ def submit_video_answer(qid):
         "Final Evaluation": final_eval,
         "Transcript": transcript
     })
+
 @app.route('/result')
 def result():
-    """
-    Display the interview results page
-    """
     return render_template('result.html')
 
 if __name__ == '__main__':
