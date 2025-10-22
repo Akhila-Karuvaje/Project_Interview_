@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Start Interview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #56d8ff, #457b9d, #a8dadc, #e63946);
+      background-size: 300% 300%;
+      animation: gradientCycle 15s ease infinite;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    @keyframes gradientCycle {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    #startForm {
+      background: rgba(0, 0, 0, 0.75);
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      color: #fff;
+      width: 90%;
+      max-width: 400px;
+      animation: fadeIn 1.5s ease-out;
+      border: 3px solid #f39c12;
+      animation: blinkBorder 2s infinite;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes blinkBorder {
+      0% { border-color: #f39c12; }
+      50% { border-color: transparent; }
+      100% { border-color: #f39c12; }
+    }
+
+    label {
+      font-size: 1.2em;
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #f4f4f4;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 10px;
+      background: #f4f4f4;
+      color: #000;
+      font-size: 1em;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 4px 10px rgba(218, 67, 67, 0.3);
+    }
+
+    button {
+      background: linear-gradient(45deg, #e63946, #f39c12);
+      color: #fff;
+      border: none;
+      padding: 15px 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      width: 100%;
+      text-align: center;
+    }
+
+    button:hover {
+      background: linear-gradient(45deg, #d62828, #f77f00);
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Start Interview</h1>
+
+  <form id="startForm">
+    <label>Job Title:</label>
+    <input type="text" id="jobTitle" placeholder="Enter a job title" name="job" required><br>
+
+    <label>Difficulty:</label>
+    <select id="difficulty" name="level" required>
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select><br>
+
+    <button type="submit">Start Interview</button>
+  </form>
+
+  <script>
+    document.getElementById("startForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('job', document.getElementById("jobTitle").value);
+      formData.append('level', document.getElementById("difficulty").value);
+
+      const response = await fetch('/generate_questions', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.redirected) {
+        window.location.href = response.url; // Redirects to /questions
+      }
+    });
+  </script>
+</body>
+</html>
