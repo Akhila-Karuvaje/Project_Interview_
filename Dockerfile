@@ -2,27 +2,26 @@ FROM python:3.10.13-slim
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install only essential system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libsndfile1 \
     ffmpeg \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first
+# Copy only requirements first
 COPY requirements.txt .
 
-# Install Python packages
+# Upgrade pip and install packages
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download NLTK data
-RUN python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab'); nltk.download('stopwords')"
-
-# Copy all application files
+# Copy application code
 COPY . .
 
 # Expose port
 EXPOSE 10000
 
-# Run the application
-CMD gunicorn app:app --bind 0.0.0.0:$PORT
+# Run the app with gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
