@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Start Interview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillSync Interview</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
     body {
       margin: 0;
@@ -27,7 +30,7 @@
       color: white;
       text-align: center;
       margin-bottom: 30px;
-      font-size: 2.5em;
+      font-size: clamp(1.8em, 5vw, 2.5em);
       text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
       animation: fadeIn 1.5s ease-out;
     }
@@ -57,17 +60,17 @@
     }
 
     label {
-      font-size: 1.2em;
+      font-size: 1.1em;
       display: block;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-weight: bold;
       color: #f4f4f4;
     }
 
     input[type="text"], select {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
+      padding: 12px;
+      margin-bottom: 18px;
       border: none;
       border-radius: 10px;
       background: #f4f4f4;
@@ -85,8 +88,8 @@
       background: linear-gradient(45deg, #e63946, #f39c12);
       color: #fff;
       border: none;
-      padding: 15px 20px;
-      font-size: 1.2em;
+      padding: 14px 18px;
+      font-size: 1.1em;
       font-weight: bold;
       cursor: pointer;
       border-radius: 10px;
@@ -101,23 +104,52 @@
       transform: scale(1.05);
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
     }
+
+    /* Responsive styling for mobile */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+        height: auto;
+      }
+
+      #startForm {
+        padding: 20px;
+        border-radius: 12px;
+      }
+
+      button {
+        font-size: 1em;
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.6em;
+      }
+
+      label {
+        font-size: 1em;
+      }
+
+      input, select {
+        font-size: 0.95em;
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 <body>
-
-  <h1>Start Interview</h1>
-
+  <h1>SkillSync Interview</h1>
   <form id="startForm">
     <label>Job Title:</label>
     <input type="text" id="jobTitle" placeholder="Enter a job title" name="job" required><br>
-
     <label>Difficulty:</label>
     <select id="difficulty" name="level" required>
       <option value="easy">Easy</option>
       <option value="medium">Medium</option>
       <option value="hard">Hard</option>
     </select><br>
-
     <button type="submit">Start Interview</button>
   </form>
 
