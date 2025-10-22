@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interview Questions</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #56d8ff, #457b9d, #a8dadc, #e63946);
+            background-size: 300% 300%;
+            animation: gradientCycle 15s ease infinite;
+            color: #fff;
+            padding: 40px;
+        }
+
+        @keyframes gradientCycle {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
+            margin-bottom: 40px;
+        }
+
+        .question-box {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px 30px;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            max-width: 700px;
+            border: 2px solid #f39c12;
+            animation: blinkBorder 2s infinite;
+        }
+
+        @keyframes blinkBorder {
+            0%, 100% { border-color: #f39c12; }
+            50% { border-color: transparent; }
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #e63946, #f39c12);
+            color: #fff;
+            font-weight: bold;
+            padding: 12px 20px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #d62828, #f77f00);
+            transform: scale(1.05);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        form {
+            display: inline-block;
+        }
+
+        .regenerate-form {
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Interview Questions for {{ job_title }} ({{ difficulty }})</h2>
+
+    <div>
+        {% for q in questions %}
+            <div class="question-box">
+                <p><strong>Question {{ loop.index }}:</strong> {{ q[1] }}</p>
+                <form action="/interview/{{ q[0] }}" method="get">
+                    <button type="submit">Start Interview</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="regenerate-form">
+        <form action="/generate_questions" method="post">
+            <input type="hidden" name="job" value="{{ job_title }}">
+            <input type="hidden" name="level" value="{{ difficulty }}">
+            <button type="submit">Regenerate Questions</button>
+        </form>
+    </div>
+
+</body>
+</html>

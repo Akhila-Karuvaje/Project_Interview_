@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Interview - Skill Sync</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #56d8ff, #457b9d, #a8dadc, #e63946);
+            background-size: 300% 300%;
+            animation: gradientCycle 15s ease infinite;
+            color: #fff;
+            padding: 40px;
+        }
+
+        @keyframes gradientCycle {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 40px;
+        }
+
+        .question-box {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 20px 30px;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            border: 2px solid #f39c12;
+            animation: blinkBorder 2s infinite;
+        }
+
+        @keyframes blinkBorder {
+            0%, 100% { border-color: #f39c12; }
+            50% { border-color: transparent; }
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(45deg, #e63946, #f39c12);
+            color: #fff;
+            font-weight: bold;
+            padding: 12px 22px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        button:hover,
+        button:focus {
+            background: linear-gradient(45deg, #d62828, #f77f00);
+            transform: scale(1.05);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+            outline: none;
+        }
+
+        .answer-section {
+            display: none;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .answer-section h4 {
+            font-size: 1.4em;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            font-size: 1.05em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            resize: vertical;
+            background: #fefefe;
+            color: #222;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        video {
+            width: 100%;
+            max-width: 500px;
+            border: 2px solid #fff;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #2a9d8f, #264653);
+            color: #fff;
+            font-weight: bold;
+            padding: 14px 34px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(45deg, #1b7f6a, #1d3557);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .submit-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #56d8ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #fff;
+            font-size: 1.2em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>Interview Question</h2>
+    <div class="question-box">
+        <p id="questionText">Q: {{ question }}</p>
+    </div>
+
+    <div class="btn-group">
+        <button onclick="showTextBox()">Answer using Text</button>
+        <button onclick="startSpeechToText()">Answer using Speech</button>
+        <button onclick="startVideoInterview()">Answer using Video</button>
+    </div>
+
+    <div class="answer-section" id="textAnswer">
+        <h4>Type your answer:</h4>
+        <textarea id="textAnswerBox" rows="6" placeholder="Type your answer here..."></textarea>
+    </div>
+
+    <div class="answer-section" id="speechAnswer">
+        <h4>Your speech answer (converted to text):</h4>
+        <textarea id="speechTextBox" rows="6" readonly></textarea>
+    </div>
+
+    <div class="answer-section" id="videoAnswer">
+        <h4>Record your video answer:</h4>
+        <video id="videoPreview" autoplay muted></video><br>
+        <button id="recordBtn" onclick="toggleRecording()">Start Recording</button>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="validateAndSubmit()">Submit Answer</button>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">
+            <p>Analyzing your answer with AI...</p>
+            <p>Please wait a moment</p>
+        </div>
+    </div>
+
+    <script>
+        const fillers = ["um", "uh", "like", "you know", "so", "actually", "basically", "literally", "I mean"];
+        let currentInputMethod = "";
+        const qid = "{{ qid }}";
+        
+        // Store the question for results page
+        sessionStorage.setItem('currentQuestion', "{{ question }}");
+        console.log("Question stored:", "{{ question }}");
+
+        function hideAll() {
+            document.getElementById('textAnswer').style.display = 'none';
+            document.getElementById('speechAnswer').style.display = 'none';
+            document.getElementById('videoAnswer').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('submitBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        // ---------------- TEXT ----------------
+        function showTextBox() {
+            hideAll();
+            currentInputMethod = "text";
+            document.getElementById('textAnswer').style.display = 'block';
+            console.log("Text input selected");
+        }
+
+        // ---------------- SPEECH ----------------
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.continuous = false;
+
+            function startSpeechToText() {
+                hideAll();
+                currentInputMethod = "speech";
+                document.getElementById('speechAnswer').style.display = 'block';
+                recognition.start();
+                console.log("Speech recognition started");
+            }
+
+            recognition.onresult = (event) => {
+                const result = event.results[0][0].transcript;
+                document.getElementById('speechTextBox').value = result;
+                console.log("Speech recognized:", result);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                alert("Speech recognition error: " + event.error);
+            };
+        } else {
+            function startSpeechToText() {
+                alert("Speech recognition not supported in this browser");
+            }
+        }
+
+        // ---------------- VIDEO ----------------
+        let mediaRecorder, recordedChunks = [];
+
+        async function startVideoInterview() {
+            hideAll();
+            currentInputMethod = "video";
+            document.getElementById('videoAnswer').style.display = 'block';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('videoPreview').srcObject = stream;
+
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                console.log("Video recording initialized");
+            } catch (error) {
+                console.error("Camera/microphone error:", error);
+                alert("Error accessing camera/microphone: " + error.message);
+            }
+        }
+
+        function toggleRecording() {
+            if (!mediaRecorder) return;
+
+            if (mediaRecorder.state === "inactive") {
+                recordedChunks = [];
+                mediaRecorder.start();
+                document.getElementById('recordBtn').innerText = "Stop Recording";
+                console.log("Recording started");
+            } else if (mediaRecorder.state === "recording") {
+                mediaRecorder.stop();
+                document.getElementById('recordBtn').innerText = "Start Recording";
+                console.log("Recording stopped");
+            }
+        }
+
+        // ---------------- SUBMIT ----------------
+        function validateAndSubmit() {
+            console.log("Submit button clicked, current method:", currentInputMethod);
+            
+            if (currentInputMethod === "text") {
+                let answerText = document.getElementById('textAnswerBox').value.trim();
+                console.log("Text answer:", answerText);
+                if (!answerText) return alert("Please enter your answer.");
+                submitTextOrSpeech(answerText);
+            } 
+            else if (currentInputMethod === "speech") {
+                let answerText = document.getElementById('speechTextBox').value.trim();
+                console.log("Speech answer:", answerText);
+                if (!answerText) return alert("Please speak your answer.");
+                submitTextOrSpeech(answerText);
+            } 
+            else if (currentInputMethod === "video") {
+                console.log("Video chunks:", recordedChunks.length);
+                if (!recordedChunks.length) return alert("Please record your video first.");
+                submitVideo();
+            }
+            else {
+                console.log("No input method selected");
+                alert("Please select an answer method and provide your response.");
+            }
+        }
+
+        function submitTextOrSpeech(answerText) {
+            console.log("=== TEXT/SPEECH SUBMISSION START ===");
+            console.log("Answer text:", answerText);
+            console.log("Question ID:", qid);
+            showLoading();
+            
+            fetch(`/submit_answer/${qid}`, {
+                method: 'POST',
+                body: new URLSearchParams({ 'answer': answerText }),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+            .then(r => {
+                console.log("Response received, status:", r.status);
+                console.log("Response ok:", r.ok);
+                if (!r.ok) {
+                    throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+                }
+                return r.json();
+            })
+            .then(data => {
+                console.log("=== DATA RECEIVED ===");
+                console.log(JSON.stringify(data, null, 2));
+                
+                // Store result data
+                const dataString = JSON.stringify(data);
+                sessionStorage.setItem('interviewResult', dataString);
+                console.log("Data stored in sessionStorage");
+                console.log("Stored data:", sessionStorage.getItem('interviewResult'));
+                
+                console.log("=== ATTEMPTING REDIRECT ===");
+                console.log("Current URL:", window.location.href);
+                console.log("Redirecting to:", window.location.origin + '/result');
+                
+                window.location.href = '/result';
+            })
+            .catch(err => {
+                console.error("=== ERROR IN SUBMISSION ===");
+                console.error("Error details:", err);
+                console.error("Error message:", err.message);
+                alert("Error submitting answer: " + err.message);
+                hideLoading();
+            });
+        }
+
+        function submitVideo() {
+            console.log("=== VIDEO SUBMISSION START ===");
+            showLoading();
+            
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const formData = new FormData();
+            formData.append("video", blob, "answer.webm");
+            console.log("Video blob size:", blob.size);
+
+            fetch(`/submit_video_answer/${qid}`, {
+                method: "POST",
+                body: formData
+            })
+            .then(r => {
+                console.log("Video response status:", r.status);
+                if (!r.ok) {
+                    throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+                }
+                return r.json();
+            })
+            .then(data => {
+                console.log("=== VIDEO DATA RECEIVED ===");
+                console.log(JSON.stringify(data, null, 2));
+                
+                sessionStorage.setItem('interviewResult', JSON.stringify(data));
+                console.log("Video data stored in sessionStorage");
+                
+                window.location.href = '/result';
+            })
+            .catch(err => {
+                console.error("=== VIDEO ERROR ===");
+                console.error("Video error:", err);
+                alert("Error submitting video answer: " + err.message);
+                hideLoading();
+            });
+        }
+
+        // Initialize with text input by default
+        console.log("Initializing page...");
+        showTextBox();
+    </script>
+</body>
+</html>
