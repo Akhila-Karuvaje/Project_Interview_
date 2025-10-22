@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interview Results - Skill Sync</title>
+    <title>SkillSync Interview Results</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -12,8 +12,9 @@
             background-size: 300% 300%;
             animation: gradientCycle 15s ease infinite;
             color: #fff;
-            padding: 40px;
+            padding: 20px;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         @keyframes gradientCycle {
@@ -28,10 +29,11 @@
 
         h1 {
             text-align: center;
-            font-size: 2.8em;
+            font-size: 2em;
             text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             animation: fadeInDown 1s ease-out;
+            word-wrap: break-word;
         }
 
         @keyframes fadeInDown {
@@ -40,13 +42,13 @@
         }
 
         .result-card {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 30px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             border: 3px solid #f39c12;
             animation: blinkBorder 2s infinite, fadeInUp 1s ease-out;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         @keyframes blinkBorder {
@@ -59,121 +61,115 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .question-section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            border-left: 5px solid #e63946;
+        .question-section, .answer-section, .feedback-section, .fillers-section, .video-transcript {
+            margin-bottom: 20px;
+            word-wrap: break-word;
         }
 
         .question-text {
-            font-size: 1.3em;
+            font-size: 1.2em;
             font-weight: bold;
             color: #56d8ff;
-            margin-bottom: 15px;
-        }
-
-        .answer-section {
-            margin-bottom: 25px;
         }
 
         .answer-label {
             font-size: 1.1em;
             font-weight: bold;
             color: #f39c12;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             display: block;
         }
 
         .answer-text {
             background: rgba(255, 255, 255, 0.9);
             color: #333;
-            padding: 15px;
+            padding: 12px;
             border-radius: 10px;
             font-size: 1em;
             line-height: 1.5;
-            border-left: 4px solid #2a9d8f;
         }
 
         .evaluation-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .eval-item {
             background: linear-gradient(135deg, rgba(42, 157, 143, 0.8), rgba(38, 70, 83, 0.8));
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
-        }
-
-        .eval-item:hover {
-            transform: translateY(-5px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
         }
 
         .eval-score {
-            font-size: 2.2em;
+            font-size: 1.6em;
             font-weight: bold;
             color: #56d8ff;
-            display: block;
         }
 
         .eval-label {
-            font-size: 1em;
+            font-size: 0.9em;
             color: #f4f4f4;
-            margin-top: 10px;
         }
 
         .feedback-section {
             background: linear-gradient(135deg, rgba(230, 57, 70, 0.8), rgba(243, 156, 18, 0.8));
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 10px;
         }
 
         .feedback-title {
-            font-size: 1.4em;
+            font-size: 1.2em;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             color: #fff;
         }
 
         .feedback-text {
-            font-size: 1.1em;
-            line-height: 1.6;
+            font-size: 1em;
             color: #f4f4f4;
+        }
+
+        .fillers-section {
+            background: rgba(243, 156, 18, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #f39c12;
+        }
+
+        .video-transcript {
+            background: rgba(86, 216, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #56d8ff;
         }
 
         .actions {
             text-align: center;
-            margin-top: 40px;
+            margin-top: 25px;
         }
 
         .btn {
             background: linear-gradient(45deg, #e63946, #f39c12);
             color: #fff;
             font-weight: bold;
-            padding: 15px 30px;
-            font-size: 1.2em;
+            padding: 12px 25px;
+            font-size: 1em;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             text-decoration: none;
             display: inline-block;
-            margin: 0 15px;
+            margin: 8px;
         }
 
         .btn:hover {
             background: linear-gradient(45deg, #d62828, #f77f00);
             transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
         }
 
         .btn-secondary {
@@ -184,85 +180,60 @@
             background: linear-gradient(45deg, #1b7f6a, #1d3557);
         }
 
-        .fillers-section {
-            background: rgba(243, 156, 18, 0.2);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #f39c12;
-            margin-top: 20px;
-        }
-
-        .video-transcript {
-            background: rgba(86, 216, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #56d8ff;
-            margin-bottom: 20px;
-        }
-
         .loading {
             text-align: center;
-            font-size: 1.2em;
+            font-size: 1em;
             color: #56d8ff;
+        }
+
+        /* ✅ Responsive Fixes */
+        @media (max-width: 600px) {
+            body { padding: 15px; }
+            h1 { font-size: 1.6em; }
+            .btn { width: 100%; font-size: 1em; padding: 12px; }
+            .evaluation-grid { grid-template-columns: 1fr 1fr; }
+            .answer-text, .feedback-text { font-size: 0.95em; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 Interview Results</h1>
-        
+        <h1>📊 SkillSync Interview Results</h1>
+
         <div id="loadingMessage" class="loading">
             <p>Loading your results...</p>
         </div>
-        
+
         <div id="resultsContent" style="display: none;">
-            <!-- Question Section -->
             <div class="result-card">
                 <div class="question-section">
-                    <div class="question-text" id="questionDisplay">
-                        <!-- Question will be inserted here -->
-                    </div>
+                    <div class="question-text" id="questionDisplay"></div>
                 </div>
-                
-                <!-- Answer Section -->
+
                 <div class="answer-section">
                     <span class="answer-label">Your Answer:</span>
-                    <div class="answer-text" id="userAnswerDisplay">
-                        <!-- User answer will be inserted here -->
-                    </div>
+                    <div class="answer-text" id="userAnswerDisplay"></div>
                 </div>
-                
-                <!-- Video Transcript (if applicable) -->
+
                 <div id="transcriptSection" class="video-transcript" style="display: none;">
                     <span class="answer-label">Video Transcript:</span>
-                    <div class="answer-text" id="transcriptDisplay">
-                        <!-- Transcript will be inserted here -->
-                    </div>
+                    <div class="answer-text" id="transcriptDisplay"></div>
                 </div>
-                
-                <!-- Evaluation Scores -->
-                <div class="evaluation-grid" id="evaluationScores">
-                    <!-- Scores will be inserted here dynamically -->
-                </div>
-                
-                <!-- Feedback Section -->
+
+                <div class="evaluation-grid" id="evaluationScores"></div>
+
                 <div class="feedback-section" id="feedbackSection" style="display: none;">
                     <div class="feedback-title">💡 AI Feedback & Recommendations</div>
-                    <div class="feedback-text" id="feedbackText">
-                        <!-- Feedback will be inserted here -->
-                    </div>
+                    <div class="feedback-text" id="feedbackText"></div>
                 </div>
-                
-                <!-- Fillers Section -->
+
                 <div id="fillersSection" class="fillers-section" style="display: none;">
                     <span class="answer-label">🎤 Fillers Detected:</span>
-                    <div class="feedback-text" id="fillersDisplay">
-                        <!-- Fillers will be inserted here -->
-                    </div>
+                    <div class="feedback-text" id="fillersDisplay"></div>
                 </div>
             </div>
         </div>
-    
+
         <div class="actions">
             <a href="/questions" class="btn btn-secondary">← Back to Questions</a>
             <button onclick="window.print()" class="btn">🖨️ Print Results</button>
@@ -271,105 +242,63 @@
     </div>
 
     <script>
-        // Get result data from URL parameters or sessionStorage
         function displayResults() {
-            const urlParams = new URLSearchParams(window.location.search);
             const resultData = sessionStorage.getItem('interviewResult');
-            
             if (resultData) {
                 const data = JSON.parse(resultData);
                 populateResults(data);
                 document.getElementById('loadingMessage').style.display = 'none';
                 document.getElementById('resultsContent').style.display = 'block';
-                
-                // Clear the stored data
                 sessionStorage.removeItem('interviewResult');
             } else {
-                // Fallback: redirect to questions if no data
                 setTimeout(() => {
                     window.location.href = '/questions';
                 }, 2000);
             }
         }
-        
+
         function populateResults(data) {
-            // Display question
-            const question = sessionStorage.getItem('currentQuestion') || 'Interview Question';
-            document.getElementById('questionDisplay').textContent = question;
-            
-            // Display user answer
-            const userAnswer = data.user_answer || data.Transcript || 'Video Answer Submitted';
-            document.getElementById('userAnswerDisplay').textContent = userAnswer;
-            
-            // Handle video transcript
-            if (data.Transcript && data.Transcript !== userAnswer) {
+            document.getElementById('questionDisplay').textContent =
+                sessionStorage.getItem('currentQuestion') || 'Interview Question';
+            document.getElementById('userAnswerDisplay').textContent =
+                data.user_answer || data.Transcript || 'Video Answer Submitted';
+
+            if (data.Transcript && data.Transcript !== data.user_answer) {
                 document.getElementById('transcriptSection').style.display = 'block';
                 document.getElementById('transcriptDisplay').textContent = data.Transcript;
             }
-            
-            // Display evaluation scores
+
             const scoresContainer = document.getElementById('evaluationScores');
             scoresContainer.innerHTML = '';
-            
             if (data["Final Evaluation"] !== undefined) {
-                // Video evaluation
                 const scores = [
                     { label: 'Content Relevance', value: `${(data["Content Relevance"] * 100).toFixed(1)}%` },
-                    { label: 'Fluency Score', value: `${(data["Fluency Score"] * 100).toFixed(1)}%` },
-                    { label: 'Confidence Score', value: `${(data["Confidence Score"] * 100).toFixed(1)}%` },
+                    { label: 'Fluency', value: `${(data["Fluency Score"] * 100).toFixed(1)}%` },
+                    { label: 'Confidence', value: `${(data["Confidence Score"] * 100).toFixed(1)}%` },
                     { label: 'Final Evaluation', value: `${data["Final Evaluation"]}%` }
                 ];
-                
                 scores.forEach(score => {
-                    const scoreElement = document.createElement('div');
-                    scoreElement.className = 'eval-item';
-                    scoreElement.innerHTML = `
-                        <span class="eval-score">${score.value}</span>
-                        <div class="eval-label">${score.label}</div>
-                    `;
-                    scoresContainer.appendChild(scoreElement);
+                    const item = document.createElement('div');
+                    item.className = 'eval-item';
+                    item.innerHTML = `<span class="eval-score">${score.value}</span><div class="eval-label">${score.label}</div>`;
+                    scoresContainer.appendChild(item);
                 });
-                
-            } else {
-                // Text/Speech evaluation
-                const validation = data.validation_result?.validation || 'N/A';
-                const validationScore = validation === 'Valid' ? '85%' : 
-                                      validation === 'Partial' ? '60%' : '40%';
-                
-                const scoreElement = document.createElement('div');
-                scoreElement.className = 'eval-item';
-                scoreElement.innerHTML = `
-                    <span class="eval-score">${validationScore}</span>
-                    <div class="eval-label">Answer Validation</div>
-                `;
-                scoresContainer.appendChild(scoreElement);
-                
-                const statusElement = document.createElement('div');
-                statusElement.className = 'eval-item';
-                statusElement.innerHTML = `
-                    <span class="eval-score">${validation}</span>
-                    <div class="eval-label">Status</div>
-                `;
-                scoresContainer.appendChild(statusElement);
             }
-            
-            // Display feedback
+
             const feedback = data.validation_result?.feedback;
             if (feedback && feedback !== 'N/A') {
                 document.getElementById('feedbackSection').style.display = 'block';
                 document.getElementById('feedbackText').textContent = feedback;
             }
-            
-            // Display fillers
+
             const fillers = data.fillers_used;
-            if (fillers && fillers !== 'None' && fillers.length > 0) {
+            if (fillers && fillers.length > 0) {
                 document.getElementById('fillersSection').style.display = 'block';
-                const fillersText = Array.isArray(fillers) ? fillers.join(', ') : fillers;
-                document.getElementById('fillersDisplay').textContent = fillersText;
+                document.getElementById('fillersDisplay').textContent =
+                    Array.isArray(fillers) ? fillers.join(', ') : fillers;
             }
         }
-        
-        // Initialize when page loads
+
         window.onload = displayResults;
     </script>
 </body>
