@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SkillSync Interview</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <style>
+    /* Body & Background */
     body {
       margin: 0;
       padding: 0;
@@ -14,11 +14,10 @@
       background: linear-gradient(135deg, #56d8ff, #457b9d, #a8dadc, #e63946);
       background-size: 300% 300%;
       animation: gradientCycle 15s ease infinite;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
-      align-items: center;
       flex-direction: column;
+      align-items: center;
     }
 
     @keyframes gradientCycle {
@@ -29,34 +28,57 @@
     h1 {
       color: white;
       text-align: center;
-      margin-bottom: 30px;
+      margin: 20px 0;
       font-size: clamp(1.8em, 5vw, 2.5em);
       text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-      animation: fadeIn 1.5s ease-out;
     }
 
+    /* Navbar */
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    nav button {
+      background: linear-gradient(45deg, #e63946, #f39c12);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 10px;
+      flex: 1 1 auto;
+      min-width: 100px;
+      max-width: 200px;
+      transition: all 0.3s ease;
+    }
+
+    nav button:hover {
+      background: linear-gradient(45deg, #d62828, #f77f00);
+      transform: scale(1.05);
+    }
+
+    /* Form Container */
     #startForm {
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0,0,0,0.75);
       padding: 30px 40px;
       border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
       color: #fff;
       width: 90%;
       max-width: 400px;
-      animation: fadeIn 1.5s ease-out;
       border: 3px solid #f39c12;
-      animation: blinkBorder 2s infinite;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes blinkBorder {
-      0% { border-color: #f39c12; }
-      50% { border-color: transparent; }
-      100% { border-color: #f39c12; }
+      margin-top: 20px;
     }
 
     label {
@@ -76,15 +98,15 @@
       background: #f4f4f4;
       color: #000;
       font-size: 1em;
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
 
     input:focus, select:focus {
       outline: none;
-      box-shadow: 0 4px 10px rgba(218, 67, 67, 0.3);
+      box-shadow: 0 4px 10px rgba(218,67,67,0.3);
     }
 
-    button {
+    button[type="submit"] {
       background: linear-gradient(45deg, #e63946, #f39c12);
       color: #fff;
       border: none;
@@ -93,33 +115,30 @@
       font-weight: bold;
       cursor: pointer;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       width: 100%;
       text-align: center;
     }
 
-    button:hover {
+    button[type="submit"]:hover {
       background: linear-gradient(45deg, #d62828, #f77f00);
       transform: scale(1.05);
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
     }
 
-    /* Responsive styling for mobile */
+    /* Responsive */
     @media (max-width: 768px) {
-      body {
-        padding: 20px;
-        height: auto;
-      }
-
       #startForm {
         padding: 20px;
         border-radius: 12px;
       }
 
-      button {
-        font-size: 1em;
-        padding: 12px;
+      nav button {
+        font-size: 0.95em;
+        padding: 10px;
+        min-width: 80px;
+        max-width: 150px;
       }
     }
 
@@ -127,29 +146,42 @@
       h1 {
         font-size: 1.6em;
       }
-
       label {
         font-size: 1em;
       }
-
       input, select {
         font-size: 0.95em;
         padding: 10px;
+      }
+      nav button {
+        width: 100%;
+        margin-bottom: 5px;
       }
     }
   </style>
 </head>
 <body>
+
+  <!-- Navbar -->
+  <nav>
+    <button onclick="location.href='/'">Home</button>
+    <button onclick="location.href='/resume'">Resume Builder</button>
+    <button onclick="location.href='/feedback'">Feedback</button>
+    <button onclick="location.href='/jobs'">Job Skills</button>
+    <button onclick="location.href='/info'">Information</button>
+  </nav>
+
   <h1>SkillSync Interview</h1>
+
   <form id="startForm">
     <label>Job Title:</label>
-    <input type="text" id="jobTitle" placeholder="Enter a job title" name="job" required><br>
+    <input type="text" id="jobTitle" placeholder="Enter a job title" name="job" required>
     <label>Difficulty:</label>
     <select id="difficulty" name="level" required>
       <option value="easy">Easy</option>
       <option value="medium">Medium</option>
       <option value="hard">Hard</option>
-    </select><br>
+    </select>
     <button type="submit">Start Interview</button>
   </form>
 
@@ -166,9 +198,10 @@
       });
 
       if (response.redirected) {
-        window.location.href = response.url; // Redirects to /questions
+        window.location.href = response.url;
       }
     });
   </script>
+
 </body>
 </html>
