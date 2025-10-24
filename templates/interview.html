@@ -12,7 +12,8 @@
       background-size: 300% 300%;
       animation: gradientCycle 15s ease infinite;
       color: #fff;
-      padding: 40px;
+      padding: 20px;
+      min-height: 100vh;
     }
 
     @keyframes gradientCycle {
@@ -24,7 +25,42 @@
       text-align: center;
       font-size: clamp(1.8em, 4vw, 2.5em);
       text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
-      margin-bottom: 40px;
+      margin-bottom: 30px;
+    }
+
+    /* ---- Navbar ---- */
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    nav button {
+      background: linear-gradient(45deg, #e63946, #f39c12);
+      color: #fff;
+      font-weight: bold;
+      padding: 10px 16px;
+      font-size: 1em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      flex: 1 1 auto;
+      min-width: 100px;
+      max-width: 200px;
+      transition: all 0.3s ease;
+    }
+
+    nav button:hover {
+      background: linear-gradient(45deg, #d62828, #f77f00);
+      transform: scale(1.05);
     }
 
     .question-box {
@@ -51,25 +87,25 @@
       flex-wrap: wrap;
     }
 
-    button {
-      background: linear-gradient(45deg, #e63946, #f39c12);
-      color: #fff;
-      font-weight: bold;
-      padding: 12px 22px;
-      font-size: 1.1em;
-      border: none;
+    .btn-group button {
+      flex: 1 1 auto;
+      min-width: 120px;
+      max-width: 200px;
+      font-size: 1em;
+      padding: 10px 16px;
       border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      background: linear-gradient(45deg, #e63946, #f39c12);
+      border: none;
+      color: #fff;
+      font-weight: bold;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    button:hover,
-    button:focus {
+    .btn-group button:hover {
       background: linear-gradient(45deg, #d62828, #f77f00);
       transform: scale(1.05);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-      outline: none;
     }
 
     .answer-section {
@@ -109,21 +145,23 @@
       background: linear-gradient(45deg, #2a9d8f, #264653);
       color: #fff;
       font-weight: bold;
-      padding: 14px 34px;
+      padding: 14px 0;
       font-size: 1.2em;
       border: none;
       border-radius: 12px;
       cursor: pointer;
       display: block;
       margin: 30px auto;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .submit-btn:hover {
       background: linear-gradient(45deg, #1b7f6a, #1d3557);
       transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
     }
 
     .submit-btn:disabled {
@@ -139,7 +177,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       z-index: 1000;
       justify-content: center;
       align-items: center;
@@ -167,74 +205,38 @@
       text-align: center;
     }
 
-    /* 🔹 Responsive Adjustments for Android & Small Screens */
+    /* --- Responsive Adjustments --- */
     @media (max-width: 768px) {
-      body {
-        padding: 20px;
-      }
-
-      .question-box {
-        padding: 15px 20px;
-        margin: 15px auto;
-        max-width: 100%;
-      }
-
-      .btn-group {
-        gap: 10px;
-      }
-
-      button {
-        font-size: 1em;
-        padding: 10px 16px;
-      }
-
-      textarea {
-        font-size: 1em;
-        padding: 10px;
-      }
-
-      video {
-        max-width: 100%;
-      }
-
-      .submit-btn {
-        font-size: 1em;
-        padding: 12px 20px;
-      }
-
-      .loading-text {
-        font-size: 1em;
-      }
+      body { padding: 15px; }
+      .question-box { padding: 15px 20px; }
+      .btn-group { gap: 10px; }
+      .btn-group button { min-width: 100px; max-width: 150px; font-size: 0.95em; padding: 10px; }
+      textarea { font-size: 1em; padding: 10px; }
+      video { max-width: 100%; }
+      .submit-btn { font-size: 1em; padding: 12px; }
+      .loading-text { font-size: 1em; }
     }
 
     @media (max-width: 480px) {
-      h2 {
-        font-size: 1.6em;
-      }
-
-      .btn-group {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      button {
-        width: 100%;
-        font-size: 0.95em;
-        padding: 10px;
-      }
-
-      .submit-btn {
-        width: 100%;
-      }
-
-      .question-box {
-        padding: 12px 15px;
-      }
+      h2 { font-size: 1.6em; }
+      .btn-group { flex-direction: column; align-items: center; }
+      .btn-group button { width: 100%; }
+      .submit-btn { width: 100%; }
+      .question-box { padding: 12px 15px; }
     }
   </style>
 </head>
 
 <body>
+  <!-- Navbar -->
+  <nav>
+    <button onclick="location.href='/'">Home</button>
+    <button onclick="location.href='/resume'">Resume Builder</button>
+    <button onclick="location.href='/feedback'">Feedback</button>
+    <button onclick="location.href='/jobs'">Job Skills</button>
+    <button onclick="location.href='/info'">Information</button>
+  </nav>
+
   <h2>Interview Question</h2>
   <div class="question-box">
     <p id="questionText">Q: {{ question }}</p>
@@ -264,7 +266,6 @@
 
   <button class="submit-btn" id="submitBtn" onclick="validateAndSubmit()">Submit Answer</button>
 
-  <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
     <div class="loading-text">
@@ -274,137 +275,117 @@
   </div>
 
   <script>
-    // --- All your JS untouched (logic same) ---
-    const fillers = ["um", "uh", "like", "you know", "so", "actually", "basically", "literally", "I mean"];
+    const fillers = ["um","uh","like","you know","so","actually","basically","literally","I mean"];
     let currentInputMethod = "";
     const qid = "{{ qid }}";
     sessionStorage.setItem('currentQuestion', "{{ question }}");
 
     function hideAll() {
-      document.getElementById('textAnswer').style.display = 'none';
-      document.getElementById('speechAnswer').style.display = 'none';
-      document.getElementById('videoAnswer').style.display = 'none';
+      document.getElementById('textAnswer').style.display='none';
+      document.getElementById('speechAnswer').style.display='none';
+      document.getElementById('videoAnswer').style.display='none';
     }
 
-    function showLoading() {
-      document.getElementById('loadingOverlay').style.display = 'flex';
-      document.getElementById('submitBtn').disabled = true;
+    function showLoading(){
+      document.getElementById('loadingOverlay').style.display='flex';
+      document.getElementById('submitBtn').disabled=true;
     }
 
-    function hideLoading() {
-      document.getElementById('loadingOverlay').style.display = 'none';
-      document.getElementById('submitBtn').disabled = false;
+    function hideLoading(){
+      document.getElementById('loadingOverlay').style.display='none';
+      document.getElementById('submitBtn').disabled=false;
     }
 
-    function showTextBox() {
-      hideAll();
-      currentInputMethod = "text";
-      document.getElementById('textAnswer').style.display = 'block';
-    }
+    function showTextBox(){ hideAll(); currentInputMethod="text"; document.getElementById('textAnswer').style.display='block'; }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
+    if(SpeechRecognition){
       const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.interimResults = false;
-      recognition.continuous = false;
-
-      function startSpeechToText() {
+      recognition.lang='en-US';
+      recognition.interimResults=false;
+      recognition.continuous=false;
+      function startSpeechToText(){
         hideAll();
-        currentInputMethod = "speech";
-        document.getElementById('speechAnswer').style.display = 'block';
+        currentInputMethod="speech";
+        document.getElementById('speechAnswer').style.display='block';
         recognition.start();
       }
-
-      recognition.onresult = (event) => {
-        document.getElementById('speechTextBox').value = event.results[0][0].transcript;
-      };
-      recognition.onerror = (event) => alert("Speech recognition error: " + event.error);
+      recognition.onresult = (event)=>{ document.getElementById('speechTextBox').value=event.results[0][0].transcript; };
+      recognition.onerror = (event)=>alert("Speech recognition error: "+event.error);
     } else {
-      function startSpeechToText() {
-        alert("Speech recognition not supported in this browser");
-      }
+      function startSpeechToText(){ alert("Speech recognition not supported in this browser"); }
     }
 
-    let mediaRecorder, recordedChunks = [];
-    async function startVideoInterview() {
+    let mediaRecorder, recordedChunks=[];
+    async function startVideoInterview(){
       hideAll();
-      currentInputMethod = "video";
-      document.getElementById('videoAnswer').style.display = 'block';
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        document.getElementById('videoPreview').srcObject = stream;
-        mediaRecorder = new MediaRecorder(stream);
-        recordedChunks = [];
-        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-      } catch (error) {
-        alert("Error accessing camera/microphone: " + error.message);
-      }
+      currentInputMethod="video";
+      document.getElementById('videoAnswer').style.display='block';
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+        document.getElementById('videoPreview').srcObject=stream;
+        mediaRecorder=new MediaRecorder(stream);
+        recordedChunks=[];
+        mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) recordedChunks.push(e.data); };
+      }catch(error){ alert("Error accessing camera/microphone: "+error.message); }
     }
 
-    function toggleRecording() {
-      if (!mediaRecorder) return;
-      if (mediaRecorder.state === "inactive") {
-        recordedChunks = [];
-        mediaRecorder.start();
-        document.getElementById('recordBtn').innerText = "Stop Recording";
-      } else if (mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
-        document.getElementById('recordBtn').innerText = "Start Recording";
-      }
+    function toggleRecording(){
+      if(!mediaRecorder) return;
+      if(mediaRecorder.state==="inactive"){ recordedChunks=[]; mediaRecorder.start(); document.getElementById('recordBtn').innerText="Stop Recording"; }
+      else if(mediaRecorder.state==="recording"){ mediaRecorder.stop(); document.getElementById('recordBtn').innerText="Start Recording"; }
     }
 
-    function validateAndSubmit() {
-      if (currentInputMethod === "text") {
-        const answer = document.getElementById('textAnswerBox').value.trim();
-        if (!answer) return alert("Please enter your answer.");
+    function validateAndSubmit(){
+      if(currentInputMethod==="text"){
+        const answer=document.getElementById('textAnswerBox').value.trim();
+        if(!answer) return alert("Please enter your answer.");
         submitTextOrSpeech(answer);
-      } else if (currentInputMethod === "speech") {
-        const answer = document.getElementById('speechTextBox').value.trim();
-        if (!answer) return alert("Please speak your answer.");
+      } else if(currentInputMethod==="speech"){
+        const answer=document.getElementById('speechTextBox').value.trim();
+        if(!answer) return alert("Please speak your answer.");
         submitTextOrSpeech(answer);
-      } else if (currentInputMethod === "video") {
-        if (!recordedChunks.length) return alert("Please record your video first.");
+      } else if(currentInputMethod==="video"){
+        if(!recordedChunks.length) return alert("Please record your video first.");
         submitVideo();
-      } else {
-        alert("Please select an answer method and provide your response.");
-      }
+      } else { alert("Please select an answer method and provide your response."); }
     }
 
-    function submitTextOrSpeech(answerText) {
+    function submitTextOrSpeech(answerText){
       showLoading();
-      fetch(`/submit_answer/${qid}`, {
-        method: 'POST',
-        body: new URLSearchParams({ 'answer': answerText }),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      fetch(`/submit_answer/${qid}`,{
+        method:'POST',
+        body:new URLSearchParams({'answer':answerText}),
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}
       })
-      .then(r => r.json())
-      .then(data => {
-        sessionStorage.setItem('interviewResult', JSON.stringify(data));
-        window.location.href = '/result';
+      .then(r=>r.json())
+      .then(data=>{
+        sessionStorage.setItem('interviewResult',JSON.stringify(data));
+        window.location.href='/result';
       })
-      .catch(err => {
-        alert("Error submitting answer: " + err.message);
+      .catch(err=>{
+        alert("Error submitting answer: "+err.message);
         hideLoading();
       });
     }
-    function submitVideo() {
-      showLoading();
-      const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      const formData = new FormData();
-      formData.append("video", blob, "answer.webm");
 
-      fetch(`/submit_video_answer/${qid}`, { method: "POST", body: formData })
-      .then(r => r.json())
-      .then(data => {
-        sessionStorage.setItem('interviewResult', JSON.stringify(data));
-        window.location.href = '/result';
+    function submitVideo(){
+      showLoading();
+      const blob=new Blob(recordedChunks,{type:'video/webm'});
+      const formData=new FormData();
+      formData.append("video",blob,"answer.webm");
+      fetch(`/submit_video_answer/${qid}`,{method:"POST",body:formData})
+      .then(r=>r.json())
+      .then(data=>{
+        sessionStorage.setItem('interviewResult',JSON.stringify(data));
+        window.location.href='/result';
       })
-      .catch(err => {
-        alert("Error submitting video answer: " + err.message);
+      .catch(err=>{
+        alert("Error submitting video answer: "+err.message);
         hideLoading();
       });
     }
+
     showTextBox();
   </script>
 </body>
