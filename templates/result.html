@@ -1,200 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillSync Interview Results</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            background: linear-gradient(135deg, #56d8ff, #457b9d, #a8dadc, #e63946);
-            background-size: 300% 300%;
-            animation: gradientCycle 15s ease infinite;
-            color: #fff;
-            padding: 20px;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSync Interview Results</title>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        background: linear-gradient(135deg, #56d8ff, #457b9d, #a8dadc, #e63946);
+        background-size: 300% 300%;
+        animation: gradientCycle 15s ease infinite;
+        color: #fff;
+        padding-bottom: 100px; /* for nav bar space */
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
 
-        @keyframes gradientCycle {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
+    @keyframes gradientCycle {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-        h1 {
-            text-align: center;
-            font-size: 2em;
-            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-            animation: fadeInDown 1s ease-out;
-            word-wrap: break-word;
-        }
+    h1 {
+        text-align: center;
+        font-size: 2em;
+        text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        margin-bottom: 30px;
+        animation: fadeInDown 1s ease-out;
+        word-wrap: break-word;
+    }
 
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-        .result-card {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            border: 3px solid #f39c12;
-            animation: blinkBorder 2s infinite, fadeInUp 1s ease-out;
-            margin-bottom: 20px;
-        }
+    .result-card {
+        background: rgba(0, 0, 0, 0.85);
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        border: 3px solid #f39c12;
+        animation: blinkBorder 2s infinite, fadeInUp 1s ease-out;
+        margin-bottom: 20px;
+    }
 
-        @keyframes blinkBorder {
-            0%, 100% { border-color: #f39c12; }
-            50% { border-color: transparent; }
-        }
+    @keyframes blinkBorder {
+        0%, 100% { border-color: #f39c12; }
+        50% { border-color: transparent; }
+    }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-        .question-section, .answer-section, .feedback-section, .fillers-section, .video-transcript {
-            margin-bottom: 20px;
-            word-wrap: break-word;
-        }
+    .question-section, .answer-section, .feedback-section, .fillers-section, .video-transcript {
+        margin-bottom: 20px;
+        word-wrap: break-word;
+    }
 
-        .question-text {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #56d8ff;
-        }
+    .question-text {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #56d8ff;
+    }
 
-        .answer-label {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #f39c12;
-            margin-bottom: 5px;
-            display: block;
-        }
+    .answer-label {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #f39c12;
+        margin-bottom: 5px;
+        display: block;
+    }
 
-        .answer-text {
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 1em;
-            line-height: 1.5;
-        }
+    .answer-text {
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 1em;
+        line-height: 1.5;
+    }
 
-        .evaluation-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+    .evaluation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
 
-        .eval-item {
-            background: linear-gradient(135deg, rgba(42, 157, 143, 0.8), rgba(38, 70, 83, 0.8));
-            padding: 15px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-        }
+    .eval-item {
+        background: linear-gradient(135deg, rgba(42, 157, 143, 0.8), rgba(38, 70, 83, 0.8));
+        padding: 15px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    }
 
-        .eval-score {
-            font-size: 1.6em;
-            font-weight: bold;
-            color: #56d8ff;
-        }
+    .eval-score {
+        font-size: 1.6em;
+        font-weight: bold;
+        color: #56d8ff;
+    }
 
-        .eval-label {
-            font-size: 0.9em;
-            color: #f4f4f4;
-        }
+    .eval-label {
+        font-size: 0.9em;
+        color: #f4f4f4;
+    }
 
-        .feedback-section {
-            background: linear-gradient(135deg, rgba(230, 57, 70, 0.8), rgba(243, 156, 18, 0.8));
-            padding: 15px;
-            border-radius: 10px;
-        }
+    .feedback-section {
+        background: linear-gradient(135deg, rgba(230, 57, 70, 0.8), rgba(243, 156, 18, 0.8));
+        padding: 15px;
+        border-radius: 10px;
+    }
 
-        .feedback-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #fff;
-        }
+    .feedback-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #fff;
+    }
 
-        .feedback-text {
-            font-size: 1em;
-            color: #f4f4f4;
-        }
+    .feedback-text {
+        font-size: 1em;
+        color: #f4f4f4;
+    }
 
-        .fillers-section {
-            background: rgba(243, 156, 18, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #f39c12;
-        }
+    .fillers-section {
+        background: rgba(243, 156, 18, 0.2);
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 4px solid #f39c12;
+    }
 
-        .video-transcript {
-            background: rgba(86, 216, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #56d8ff;
-        }
+    .video-transcript {
+        background: rgba(86, 216, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 4px solid #56d8ff;
+    }
 
-        .actions {
-            text-align: center;
-            margin-top: 25px;
-        }
+    /* Nav bar at bottom */
+    nav.navbar-fixed {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.85);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        padding: 10px 5px;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+        z-index: 999;
+    }
 
-        .btn {
-            background: linear-gradient(45deg, #e63946, #f39c12);
-            color: #fff;
-            font-weight: bold;
-            padding: 12px 25px;
-            font-size: 1em;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            text-decoration: none;
-            display: inline-block;
-            margin: 8px;
-        }
+    nav.navbar-fixed .btn {
+        flex: 1 1 auto;
+        margin: 5px;
+        text-align: center;
+        padding: 12px 0;
+        font-size: 1em;
+        border-radius: 10px;
+        min-width: 100px;
+    }
 
-        .btn:hover {
-            background: linear-gradient(45deg, #d62828, #f77f00);
-            transform: scale(1.05);
-        }
+    nav.navbar-fixed .btn:hover {
+        transform: scale(1.05);
+    }
 
-        .btn-secondary {
-            background: linear-gradient(45deg, #2a9d8f, #264653);
-        }
+    .loading {
+        text-align: center;
+        font-size: 1em;
+        color: #56d8ff;
+    }
 
-        .btn-secondary:hover {
-            background: linear-gradient(45deg, #1b7f6a, #1d3557);
-        }
-
-        .loading {
-            text-align: center;
-            font-size: 1em;
-            color: #56d8ff;
-        }
-
-        /* ✅ Responsive Fixes */
-        @media (max-width: 600px) {
-            body { padding: 15px; }
-            h1 { font-size: 1.6em; }
-            .btn { width: 100%; font-size: 1em; padding: 12px; }
-            .evaluation-grid { grid-template-columns: 1fr 1fr; }
-            .answer-text, .feedback-text { font-size: 0.95em; }
-        }
-    </style>
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+        body { padding-bottom: 130px; }
+        h1 { font-size: 1.6em; }
+        .evaluation-grid { grid-template-columns: 1fr 1fr; }
+        .answer-text, .feedback-text { font-size: 0.95em; }
+        nav.navbar-fixed .btn { font-size: 0.95em; padding: 10px 0; }
+    }
+</style>
 </head>
 <body>
     <div class="container">
@@ -233,73 +230,74 @@
                 </div>
             </div>
         </div>
-
-        <div class="actions">
-            <a href="/questions" class="btn btn-secondary">← Back to Questions</a>
-            <button onclick="window.print()" class="btn">🖨️ Print Results</button>
-            <a href="/" class="btn">🏠 Start New Interview</a>
-        </div>
     </div>
 
-    <script>
-        function displayResults() {
-            const resultData = sessionStorage.getItem('interviewResult');
-            if (resultData) {
-                const data = JSON.parse(resultData);
-                populateResults(data);
-                document.getElementById('loadingMessage').style.display = 'none';
-                document.getElementById('resultsContent').style.display = 'block';
-                sessionStorage.removeItem('interviewResult');
-            } else {
-                setTimeout(() => {
-                    window.location.href = '/questions';
-                }, 2000);
-            }
+    <!-- Bottom fixed nav -->
+    <nav class="navbar-fixed">
+        <a href="/questions" class="btn btn-secondary">← Back</a>
+        <button onclick="window.print()" class="btn">🖨️ Print</button>
+        <a href="/" class="btn">🏠 New Interview</a>
+    </nav>
+
+<script>
+    function displayResults() {
+        const resultData = sessionStorage.getItem('interviewResult');
+        if (resultData) {
+            const data = JSON.parse(resultData);
+            populateResults(data);
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+            sessionStorage.removeItem('interviewResult');
+        } else {
+            setTimeout(() => {
+                window.location.href = '/questions';
+            }, 2000);
+        }
+    }
+
+    function populateResults(data) {
+        document.getElementById('questionDisplay').textContent =
+            sessionStorage.getItem('currentQuestion') || 'Interview Question';
+        document.getElementById('userAnswerDisplay').textContent =
+            data.user_answer || data.Transcript || 'Video Answer Submitted';
+
+        if (data.Transcript && data.Transcript !== data.user_answer) {
+            document.getElementById('transcriptSection').style.display = 'block';
+            document.getElementById('transcriptDisplay').textContent = data.Transcript;
         }
 
-        function populateResults(data) {
-            document.getElementById('questionDisplay').textContent =
-                sessionStorage.getItem('currentQuestion') || 'Interview Question';
-            document.getElementById('userAnswerDisplay').textContent =
-                data.user_answer || data.Transcript || 'Video Answer Submitted';
-
-            if (data.Transcript && data.Transcript !== data.user_answer) {
-                document.getElementById('transcriptSection').style.display = 'block';
-                document.getElementById('transcriptDisplay').textContent = data.Transcript;
-            }
-
-            const scoresContainer = document.getElementById('evaluationScores');
-            scoresContainer.innerHTML = '';
-            if (data["Final Evaluation"] !== undefined) {
-                const scores = [
-                    { label: 'Content Relevance', value: `${(data["Content Relevance"] * 100).toFixed(1)}%` },
-                    { label: 'Fluency', value: `${(data["Fluency Score"] * 100).toFixed(1)}%` },
-                    { label: 'Confidence', value: `${(data["Confidence Score"] * 100).toFixed(1)}%` },
-                    { label: 'Final Evaluation', value: `${data["Final Evaluation"]}%` }
-                ];
-                scores.forEach(score => {
-                    const item = document.createElement('div');
-                    item.className = 'eval-item';
-                    item.innerHTML = `<span class="eval-score">${score.value}</span><div class="eval-label">${score.label}</div>`;
-                    scoresContainer.appendChild(item);
-                });
-            }
-
-            const feedback = data.validation_result?.feedback;
-            if (feedback && feedback !== 'N/A') {
-                document.getElementById('feedbackSection').style.display = 'block';
-                document.getElementById('feedbackText').textContent = feedback;
-            }
-
-            const fillers = data.fillers_used;
-            if (fillers && fillers.length > 0) {
-                document.getElementById('fillersSection').style.display = 'block';
-                document.getElementById('fillersDisplay').textContent =
-                    Array.isArray(fillers) ? fillers.join(', ') : fillers;
-            }
+        const scoresContainer = document.getElementById('evaluationScores');
+        scoresContainer.innerHTML = '';
+        if (data["Final Evaluation"] !== undefined) {
+            const scores = [
+                { label: 'Content Relevance', value: `${(data["Content Relevance"] * 100).toFixed(1)}%` },
+                { label: 'Fluency', value: `${(data["Fluency Score"] * 100).toFixed(1)}%` },
+                { label: 'Confidence', value: `${(data["Confidence Score"] * 100).toFixed(1)}%` },
+                { label: 'Final Evaluation', value: `${data["Final Evaluation"]}%` }
+            ];
+            scores.forEach(score => {
+                const item = document.createElement('div');
+                item.className = 'eval-item';
+                item.innerHTML = `<span class="eval-score">${score.value}</span><div class="eval-label">${score.label}</div>`;
+                scoresContainer.appendChild(item);
+            });
         }
 
-        window.onload = displayResults;
-    </script>
+        const feedback = data.validation_result?.feedback;
+        if (feedback && feedback !== 'N/A') {
+            document.getElementById('feedbackSection').style.display = 'block';
+            document.getElementById('feedbackText').textContent = feedback;
+        }
+
+        const fillers = data.fillers_used;
+        if (fillers && fillers.length > 0) {
+            document.getElementById('fillersSection').style.display = 'block';
+            document.getElementById('fillersDisplay').textContent =
+                Array.isArray(fillers) ? fillers.join(', ') : fillers;
+        }
+    }
+
+    window.onload = displayResults;
+</script>
 </body>
 </html>
