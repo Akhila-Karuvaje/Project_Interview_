@@ -2,17 +2,28 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, s
 import google.generativeai as genai
 import os
 import speech_recognition as sr
-import pandas as pd
 import re
 import json
 
+# ------------------ Flask App ------------------
 app = Flask(__name__)
 app.secret_key = 'my_super_secret_key_456789'
 
-# Gemini API config
-GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyACpD3waeAbKickkjJb7gBHqegPhGGB-VE')
+# Increase upload limit to 50 MB (for video)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB
+
+# ------------------ Gemini API config ------------------
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'YOUR_API_KEY_HERE')
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-2.0-flash')
+
+# ------------------ Heavy ML Models ------------------
+# Load once at startup to avoid 502
+import whisper
+model_whisper = whisper.load_model("tiny")
+
+from sentence_transformers import SentenceTransformer
+model_bert = SentenceTransformer('all-MiniLM-L6-v2')
 
 # ------------------ Utility Functions ------------------
 
@@ -20,11 +31,8 @@ def SpeechToText():
     r = sr.Recognizer()
     try:
         with sr.Microphone() as source:
-            print("Adjusting for ambient noise...")
             r.adjust_for_ambient_noise(source)
-            print("Listening...")
             audio = r.listen(source)
-        print("Recognizing...")
         query = r.recognize_google(audio, language='en-IN')
         return query
     except sr.UnknownValueError:
@@ -105,6 +113,8 @@ def interview(qid):
         question = 'No question found'
     return render_template('interview.html', question=question, qid=qid)
 
+# ------------------ Audio Transcription ------------------
+
 @app.route('/get_analysis', methods=['POST'])
 def get_analysis():
     if 'audio' not in request.files:
@@ -126,11 +136,16 @@ def get_analysis():
         return jsonify({"error": f"Speech recognition failed: {e}"}), 500
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+    finally:
+        if os.path.exists(audio_path):
+            os.remove(audio_path)
 
     return jsonify({
         "transcription": transcribed_text,
         "duration": duration
     })
+
+# ------------------ Text Answer Submission ------------------
 
 @app.route('/submit_answer/<qid>', methods=['POST'])
 def submit_answer(qid):
@@ -153,11 +168,7 @@ def submit_answer(qid):
         response = model.generate_content(prompt)
         raw_text = response.text.strip()
         json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
-        if json_match:
-            json_str = json_match.group()
-            result = json.loads(json_str)
-        else:
-            raise ValueError("No JSON object found")
+        result = json.loads(json_match.group()) if json_match else {}
     except Exception:
         result = {
             "correct_answer": "Unable to parse response.",
@@ -176,7 +187,7 @@ def submit_answer(qid):
         'fillers_used': result.get('fillers_used', [])
     })
 
-# ------------------ Video Interview Routes ------------------
+# ------------------ Video Answer Submission ------------------
 
 @app.route('/video_interview')
 def video_interview():
@@ -192,57 +203,37 @@ def submit_video_answer(qid):
     filepath = os.path.join("uploads", f"answer_{qid}.webm")
     file.save(filepath)
 
-    # -------- Lazy load heavy ML models --------
-    import whisper
-    model_whisper = whisper.load_model("tiny")
+    # Transcribe using preloaded Whisper
     result = model_whisper.transcribe(filepath)
     transcript = result['text']
 
-    from sentence_transformers import SentenceTransformer
-    model_bert = SentenceTransformer('all-MiniLM-L6-v2')
-
-    import nltk
-    nltk.download('punkt', quiet=True)
-    nltk.download('stopwords', quiet=True)
-
     # Gemini evaluation
     prompt = f"""
-    You are an expert interviewer. Analyze the user's answer and return only JSON in this format:
-
+    You are an expert interviewer. Analyze user's answer, return JSON:
     {{
-        "Confidence Score": <float between 0 and 1>,
-        "Content Relevance": <float between 0 and 1>,
-        "Fluency Score": <float between 0 and 1>
+        "Confidence Score": <0-1>,
+        "Content Relevance": <0-1>,
+        "Fluency Score": <0-1>
     }}
-
     Question ID: {qid}
     User Answer: "{transcript}"
     """
     try:
         response = model.generate_content(prompt)
-        raw_text = response.text.strip()
-        json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
-        if json_match:
-            json_str = json_match.group()
-            scores = json.loads(json_str)
-        else:
-            scores = {
-                "Confidence Score": 0.0,
-                "Content Relevance": 0.0,
-                "Fluency Score": 0.0
-            }
-    except Exception:
-        scores = {
+        match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        scores = json.loads(match.group()) if match else {
             "Confidence Score": 0.0,
             "Content Relevance": 0.0,
             "Fluency Score": 0.0
         }
+    except Exception:
+        scores = {"Confidence Score": 0.0, "Content Relevance": 0.0, "Fluency Score": 0.0}
 
-    final_eval = round(
-        (scores["Confidence Score"] +
-         scores["Content Relevance"] +
-         scores["Fluency Score"]) / 3 * 100, 2
-    ) if scores else 0.0
+    final_eval = round(sum(scores.values()) / 3 * 100, 2)
+
+    # Cleanup uploaded video
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
     return jsonify({
         "Confidence Score": scores["Confidence Score"],
@@ -256,6 +247,7 @@ def submit_video_answer(qid):
 def result():
     return render_template('result.html')
 
+# ------------------ Main ------------------
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
