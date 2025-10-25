@@ -291,15 +291,16 @@ def video_interview():
     return render_template('video_interview.html')
 
 @app.route('/submit_video_answer/<qid>', methods=['POST'])
+@app.route('/submit_video_answer/<qid>', methods=['POST'])
 def submit_video_answer(qid):
-    print(f"📹 Video upload started for Q{qid}")
+    print(f"📹 Video submission Q{qid}")
     
     if 'video' not in request.files:
         return jsonify({"error": "No video uploaded"}), 400
 
     file = request.files['video']
     
-    # Check file size before processing (max 10MB for free tier)
+    # Check file size BEFORE saving (max 15MB for free tier)
     file.seek(0, os.SEEK_END)
     file_size_bytes = file.tell()
     file.seek(0)
@@ -307,10 +308,10 @@ def submit_video_answer(qid):
     
     print(f"📦 Video size: {file_size_mb:.2f} MB")
     
-    if file_size_mb > 20:
-        return jsonify({"error": "Video too large. Please record a shorter answer (max 2 minutes)"}), 400
+    if file_size_mb > 15:
+        return jsonify({"error": "Video too large. Max 1 minute (15MB)"}), 400
     
-    # Save video to /tmp for Render compatibility
+    # Save to /tmp (Render requirement)
     os.makedirs("/tmp/uploads", exist_ok=True)
     filepath = os.path.join("/tmp/uploads", f"answer_{qid}_{os.getpid()}.webm")
     
@@ -318,120 +319,200 @@ def submit_video_answer(qid):
         file.save(filepath)
         print(f"✅ Video saved: {file_size_mb:.2f} MB")
     except Exception as e:
-        print(f"❌ Video save error: {e}")
-        return jsonify({"error": f"Failed to save video: {str(e)}"}), 500
+        print(f"❌ Save error: {e}")
+        return jsonify({"error": f"Save failed: {str(e)}"}), 500
 
-    # Step 1: Try transcription with timeout protection
-    transcript = "Unable to transcribe audio"
-    whisper_available = True
-    
-    try:
-        print("🎤 Starting audio transcription...")
-        
-        # Check if Whisper is available and loaded
-        if '_whisper_model_cache' not in globals():
-            print("⚠️ Whisper not pre-loaded, loading now...")
-            import whisper
-            globals()['_whisper_model_cache'] = whisper.load_model("tiny", download_root="/tmp/whisper_cache", device="cpu")
-        
-        # Use pre-loaded model
-        import whisper
-        model_whisper = globals()['_whisper_model_cache']
-        
-        # Quick transcription with aggressive timeout protection
-        print("🎯 Transcribing (this may take 10-20 seconds)...")
-        result = model_whisper.transcribe(
-            filepath,
-            fp16=False,
-            language='en',
-            verbose=False,
-            condition_on_previous_text=False,  # Faster
-            compression_ratio_threshold=2.4,    # Skip low quality
-            no_speech_threshold=0.6             # Skip silence
-        )
-        transcript = result['text'].strip()
-        
-        if not transcript or len(transcript) < 5:
-            transcript = "No clear speech detected in video"
-        
-        print(f"✅ Transcription complete: {len(transcript)} chars")
-        
-    except Exception as e:
-        print(f"❌ Whisper transcription error: {e}")
-        whisper_available = False
-        transcript = "Audio transcription unavailable. Using manual evaluation."
-
-    # Clean up video file immediately
-    try:
-        if os.path.exists(filepath):
-            os.remove(filepath)
-            print("🗑️ Video file deleted")
-    except Exception as e:
-        print(f"⚠️ Cleanup warning: {e}")
-
-    # Step 2: Get question text
+    # Get question
     questions = session.get('questions', [])
     try:
         question_text = questions[int(qid) - 1]
     except:
         question_text = "Interview question"
 
-    # Step 3: Default scores
-    scores = {
-        "Confidence Score": 0.65,
-        "Content Relevance": 0.65,
-        "Fluency Score": 0.65
+    # === TRANSCRIPTION with Whisper ===
+    transcript = "Transcription unavailable"
+    
+    if WHISPER_ENABLED and whisper_model:
+        try:
+            print("🎤 Extracting audio from video for Whisper...")
+            
+            # Extract audio to .wav using ffmpeg
+            audio_path = filepath.replace(".webm", ".wav")
+            import subprocess
+            subprocess.run([
+                "ffmpeg", "-i", filepath,
+                "-vn",  # no video
+                "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
+                audio_path
+            ], check=True)
+            print(f"🎧 Audio extracted to {audio_path}")
+            
+            print("🎤 Transcribing with Whisper tiny...")
+            result = whisper_model.transcribe(
+                audio_path,
+                fp16=False,
+                language='en',
+                verbose=False,
+                condition_on_previous_text=False,
+                compression_ratio_threshold=2.4,
+                no_speech_threshold=0.6
+            )
+            
+            transcript = result['text'].strip()
+            
+            if not transcript or len(transcript) < 5:
+                transcript = "No clear speech detected"
+            
+            print(f"✅ Transcript: {len(transcript)} chars")
+            
+        except Exception as e:
+            print(f"❌ Whisper/audio error: {e}")
+            transcript = "Transcription failed. Please upgrade hosting for better support."
+    else:
+        transcript = "Video recorded. Transcription disabled on free tier - upgrade to Starter plan for AI transcription."
+
+    # Cleanup video/audio immediately
+    try:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        audio_path = filepath.replace(".webm", ".wav")
+        if os.path.exists(audio_path):
+            os.remove(audio_path)
+        print("🗑 Video/audio deleted")
+    except:
+        pass
+
+    # === COMPREHENSIVE EVALUATION with Gemini ===
+    # Get both validation AND detailed scores
+    validation_result = {
+        "correct_answer": "",
+        "validation": "Invalid",
+        "score": 0,
+        "feedback": "",
+        "confidence_score": 0.70,
+        "content_relevance": 0.70,
+        "fluency_score": 0.70
     }
 
-    # Step 4: Try Gemini evaluation (with fallback)
-    if whisper_available and len(transcript) > 10 and "unavailable" not in transcript.lower():
+    # Only evaluate if we have real transcript
+    if WHISPER_ENABLED and len(transcript) > 10 and "failed" not in transcript.lower() and "unavailable" not in transcript.lower():
         try:
-            print("🤖 Evaluating with AI...")
+            print("🤖 Comprehensive evaluation with Gemini...")
             
-            # Shorter prompt for faster response
-            prompt = f"""Rate this answer (0.0-1.0 each):
-Q: {question_text}
-A: {transcript[:400]}
+            prompt = f"""You are a strict technical interviewer evaluating a VIDEO interview answer.
 
-JSON only:
-{{"Confidence Score": 0.X, "Content Relevance": 0.X, "Fluency Score": 0.X}}"""
+Question: {question_text}
+User's Answer (from video): "{transcript}"
+
+Provide COMPLETE evaluation in JSON format:
+{{
+    "correct_answer": "Brief ideal answer to the question",
+    "validation": "Valid/Partial-High/Partial-Low/Invalid",
+    "score": 75,
+    "feedback": "2-3 sentences explaining the evaluation",
+    "confidence_score": 0.8,
+    "content_relevance": 0.7,
+    "fluency_score": 0.9
+}}
+
+SCORING RULES:
+- Valid (76-100%): Correct answer with accurate information
+- Partial-High (50-75%): Related but incomplete
+- Partial-Low (30-49%): Vague or mostly incorrect
+- Invalid (0-29%): Wrong, off-topic, or nonsense
+
+DETAILED SCORES (0.0-1.0):
+- confidence_score: How confident/clear the speaker sounds
+- content_relevance: How well answer addresses the question
+- fluency_score: Speech clarity and coherence
+
+Return ONLY the JSON object."""
             
             response = model.generate_content(prompt)
-            raw_text = response.text.strip().replace('```json', '').replace('```', '').strip()
+            raw_text = response.text.strip().replace('json', '').replace('', '').strip()
             json_match = re.search(r'\{.*?\}', raw_text, re.DOTALL)
             
             if json_match:
-                eval_scores = json.loads(json_match.group())
-                scores.update(eval_scores)
-                print(f"✅ AI evaluation: {scores}")
+                result = json.loads(json_match.group())
+                
+                # Normalize validation and score
+                validation = result.get('validation', 'Invalid')
+                score = result.get('score', 0)
+                
+                # Ensure score matches category
+                if validation == 'Valid' and score < 76:
+                    score = 76
+                elif validation == 'Partial-High' and (score < 50 or score > 75):
+                    score = 65
+                elif validation == 'Partial-Low' and (score < 30 or score >= 50):
+                    score = 40
+                elif validation == 'Invalid' and score >= 30:
+                    score = 15
+                
+                # Simplify validation for frontend
+                if validation in ['Partial-High', 'Partial-Low']:
+                    simple_validation = 'Partial'
+                else:
+                    simple_validation = validation
+                
+                validation_result = {
+                    "correct_answer": result.get('correct_answer', ''),
+                    "validation": simple_validation,
+                    "score": score,
+                    "feedback": result.get('feedback', ''),
+                    "confidence_score": float(result.get('confidence_score', 0.70)),
+                    "content_relevance": float(result.get('content_relevance', 0.70)),
+                    "fluency_score": float(result.get('fluency_score', 0.70))
+                }
+                
+                print(f"✅ Evaluation complete: Score {score}%, Validation: {simple_validation}")
                 
         except Exception as e:
-            print(f"⚠️ AI evaluation skipped: {e}")
-            # Use default scores
+            print(f"⚠ Evaluation error: {e}")
+    else:
+        # No valid transcript - return default scores
+        validation_result = {
+            "correct_answer": "Transcription unavailable",
+            "validation": "Invalid",
+            "score": 0,
+            "feedback": "Could not transcribe video audio",
+            "confidence_score": 0.0,
+            "content_relevance": 0.0,
+            "fluency_score": 0.0
+        }
 
-    # Calculate final score
-    try:
-        final_eval = round(
-            (float(scores.get("Confidence Score", 0.65)) +
-             float(scores.get("Content Relevance", 0.65)) +
-             float(scores.get("Fluency Score", 0.65))) / 3 * 100, 2
-        )
-    except:
-        final_eval = 65.0
+    print(f"📊 Final Score: {validation_result['score']}%")
 
-    print(f"📊 Final evaluation: {final_eval}%")
+    # Store in session
+    results = session.get('results', [])
+    results.append({
+        "Q.ID": qid,
+        "Question": question_text,
+        "User Answer": transcript,
+        "Score": validation_result['score'],
+        "Validation": validation_result['validation'],
+        "Feedback": validation_result['feedback'],
+        "Confidence Score": validation_result['confidence_score'],
+        "Content Relevance": validation_result['content_relevance'],
+        "Fluency Score": validation_result['fluency_score']
+    })
+    session['results'] = results
 
-    # Add helpful message if transcription failed
-    if not whisper_available or "unavailable" in transcript.lower():
-        transcript += "\n\n[Note: For best results on free hosting, please keep video answers under 1 minute and speak clearly.]"
-
+    # Return unified format (same as text/speech + extra scores)
     return jsonify({
-        "Confidence Score": float(scores.get("Confidence Score", 0.65)),
-        "Content Relevance": float(scores.get("Content Relevance", 0.65)),
-        "Fluency Score": float(scores.get("Fluency Score", 0.65)),
-        "Final Evaluation": final_eval,
-        "Transcript": transcript,
-        "whisper_available": whisper_available
+        'user_answer': transcript,
+        'validation_result': {
+            'correct_answer': validation_result['correct_answer'],
+            'validation': validation_result['validation'],
+            'score': validation_result['score'],
+            'feedback': validation_result['feedback']
+        },
+        'fillers_used': detect_fillers(transcript).split(', ') if transcript else [],
+        'extra_scores': {
+            'confidence_score': validation_result['confidence_score'],
+            'content_relevance': validation_result['content_relevance'],
+            'fluency_score': validation_result['fluency_score']
+        }
     })
 
 @app.route('/result')
@@ -446,3 +527,4 @@ def health():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
