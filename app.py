@@ -29,22 +29,15 @@ os.environ['HF_HOME'] = '/tmp/huggingface_cache'
 WHISPER_ENABLED = True
 _whisper_model_cache = None
 
-if WHISPER_ENABLED:
-    try:
-        import whisper
-        import pathlib
-        whisper_cache_dir = pathlib.Path("/tmp/whisper_cache")
-        whisper_cache_dir.mkdir(parents=True, exist_ok=True)
-        
-        print("🔄 Pre-loading Whisper tiny model...")
-        _whisper_model_cache = whisper.load_model(
-            "tiny",
-            download_root=str(whisper_cache_dir)
-        )
-        print("✅ Whisper tiny model loaded successfully!")
-    except Exception as e:
-        WHISPER_ENABLED = False
-        print(f"⚠️ Whisper load failed: {e}")
+# Pre-load Whisper model to avoid timeout on first video request
+print("🔄 Pre-loading Whisper model...")
+try:
+    import whisper
+    _whisper_model_cache = whisper.load_model("tiny", download_root="/tmp/whisper_cache")
+    print("✅ Whisper model pre-loaded successfully!")
+except Exception as e:
+    print(f"⚠️ Warning: Could not pre-load Whisper: {e}")
+
 # Pre-download NLTK data
 try:
     import nltk
@@ -539,5 +532,6 @@ def health():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
 
 
