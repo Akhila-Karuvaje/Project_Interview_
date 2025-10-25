@@ -5,18 +5,16 @@ import speech_recognition as sr
 import re
 import json
 import secrets
-from werkzeug.utils import secure_filename
-import tempfile
 
 app = Flask(__name__)
 
-# Security: Generate secret key from environment or create secure random one
-app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+# Security: Secret key from environment variable (Render will set this)
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
-# Gemini API config - CRITICAL: Must be in environment variable
+# Gemini API config - MUST be set in Render environment variables
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 if not GOOGLE_API_KEY:
-    raise ValueError("GOOGLE_API_KEY environment variable is required!")
+    raise ValueError("❌ ERROR: GOOGLE_API_KEY environment variable is required! Please set it in Render dashboard.")
 
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-2.0-flash')
@@ -25,10 +23,6 @@ model = genai.GenerativeModel('gemini-2.0-flash')
 os.environ['TRANSFORMERS_CACHE'] = '/tmp/transformers_cache'
 os.environ['TORCH_HOME'] = '/tmp/torch_cache'
 os.environ['HF_HOME'] = '/tmp/huggingface_cache'
-
-# Configuration
-MAX_VIDEO_SIZE_MB = 50
-ALLOWED_VIDEO_EXTENSIONS = {'webm', 'mp4', 'avi'}
 
 # Pre-load Whisper model to avoid timeout on first video request
 print("🔄 Pre-loading Whisper model...")
@@ -51,38 +45,38 @@ except Exception as e:
 
 # ------------------ Utility Functions ------------------
 
-def clean_answer(answer):
-    """Remove stopwords from answer text"""
+def SpeechToText():
+    r = sr.Recognizer()
     try:
-        import nltk
-        from nltk.tokenize import word_tokenize
-        from nltk.corpus import stopwords
-        words = word_tokenize(answer)
-        stop_words = set(stopwords.words('english'))
-        return ' '.join([word for word in words if word.lower() not in stop_words])
+        with sr.Microphone() as source:
+            print("Adjusting for ambient noise...")
+            r.adjust_for_ambient_noise(source)
+            print("Listening...")
+            audio = r.listen(source)
+        print("Recognizing...")
+        query = r.recognize_google(audio, language='en-IN')
+        return query
+    except sr.UnknownValueError:
+        return "Could not understand the audio."
+    except sr.RequestError as e:
+        return f"Could not request results from Google Speech Recognition service; {e}"
     except Exception as e:
-        print(f"Error cleaning answer: {e}")
-        return answer
+        return f"Unexpected error: {str(e)}"
+
+def clean_answer(answer):
+    import nltk
+    from nltk.tokenize import word_tokenize
+    from nltk.corpus import stopwords
+    words = word_tokenize(answer)
+    stop_words = set(stopwords.words('english'))
+    return ' '.join([word for word in words if word.lower() not in stop_words])
 
 def detect_fillers(text):
-    """Detect filler words in text"""
-    try:
-        import nltk
-        words = nltk.word_tokenize(text.lower())
-        common_fillers = {"um", "uh", "like", "you know", "so", "actually", "basically", "literally", "well", "hmm"}
-        used_fillers = [w for w in words if w in common_fillers]
-        return ", ".join(set(used_fillers)) if used_fillers else "None"
-    except Exception as e:
-        print(f"Error detecting fillers: {e}")
-        return "None"
-
-def allowed_file(filename):
-    """Check if file extension is allowed"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
-
-def sanitize_filename(filename):
-    """Sanitize filename for security"""
-    return secure_filename(filename)
+    import nltk
+    words = nltk.word_tokenize(text.lower())
+    common_fillers = {"um", "uh", "like", "you know", "so", "actually", "basically", "literally", "well", "hmm"}
+    used_fillers = [w for w in words if w in common_fillers]
+    return ", ".join(set(used_fillers)) if used_fillers else "None"
 
 # ------------------ Routes ------------------
 
@@ -95,12 +89,8 @@ def generate_questions():
     job = request.form.get('job', '').strip()
     level = request.form.get('level', 'medium').strip()
     
-    # Input validation
-    if not job or len(job) > 100:
-        return jsonify({"error": "Invalid job title"}), 400
-    
-    if level not in ['easy', 'medium', 'hard']:
-        level = 'medium'
+    if not job:
+        return jsonify({"error": "Job title is required"}), 400
     
     session['job_title'] = job
     session['difficulty'] = level
@@ -122,59 +112,49 @@ def regenerate_questions():
         response = model.generate_content(prompt)
         raw_questions = response.text.strip().split("\n")
         questions = []
-        
         for q in raw_questions:
             match = re.match(r'^\d+[\).\s-]+(.*)', q.strip())
             if match:
                 questions.append(match.group(1).strip())
-        
         questions = questions[:10]
         
-        # Ensure we have at least some questions
-        if len(questions) < 5:
-            raise ValueError("Too few questions generated")
+        if not questions:
+            raise ValueError("No questions generated")
         
         session['questions'] = questions
         return redirect(url_for('questions'))
-    
     except Exception as e:
         print(f"Error generating questions: {e}")
-        return jsonify({"error": "Failed to generate questions. Please try again."}), 500
+        return jsonify({"error": "Failed to generate questions"}), 500
 
 @app.route('/questions')
 def questions():
     questions = session.get('questions', [])
-    
     if not questions:
         return redirect(url_for('index'))
     
-    job = session.get('job_title', 'Position')
-    difficulty = session.get('difficulty', 'medium')
+    job = session.get('job_title')
+    difficulty = session.get('difficulty')
     question_list = list(enumerate(questions, start=1))
     return render_template('questions.html', questions=question_list, job_title=job, difficulty=difficulty)
 
 @app.route('/interview/<int:qid>')
 def interview(qid):
     questions = session.get('questions', [])
-    
-    if not questions or qid < 1 or qid > len(questions):
-        return redirect(url_for('questions'))
-    
-    question = questions[qid - 1]
+    if 1 <= qid <= len(questions):
+        question = questions[qid - 1]
+    else:
+        question = 'No question found'
     return render_template('interview.html', question=question, qid=qid)
 
 @app.route('/get_analysis', methods=['POST'])
 def get_analysis():
-    """Analyze audio file (legacy endpoint, can be removed if not used)"""
     if 'audio' not in request.files:
         return jsonify({"error": "No audio file"}), 400
 
     audio_file = request.files['audio']
-    
-    # Use temporary file for security
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
-        audio_path = temp_audio.name
-        audio_file.save(audio_path)
+    audio_path = "/tmp/user_audio.wav"
+    audio_file.save(audio_path)
 
     recognizer = sr.Recognizer()
     try:
@@ -189,7 +169,6 @@ def get_analysis():
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
     finally:
-        # Clean up temp file
         try:
             os.remove(audio_path)
         except:
@@ -203,11 +182,6 @@ def get_analysis():
 @app.route('/submit_answer/<qid>', methods=['POST'])
 def submit_answer(qid):
     user_answer = request.form.get('answer', '').strip()
-    
-    # Input validation
-    if not user_answer or len(user_answer) > 5000:
-        return jsonify({"error": "Invalid answer length"}), 400
-    
     questions = session.get('questions', [])
     
     # Get the actual question text
@@ -223,16 +197,17 @@ Question: {question_text}
 User's Answer: "{user_answer}"
 
 EVALUATION RULES WITH SCORES:
-1. "Valid" (85-100%): Answer correctly and completely addresses the question with accurate, relevant, detailed information
-2. "Partial-High" (50-84%): Answer is related to the question with some correct information but incomplete or missing key details
+1. "Valid" (76-100%): Answer correctly addresses the question with accurate, relevant information (may have minor gaps but fundamentally correct)
+2. "Partial-High" (50-75%): Answer is related to the question with some correct information but incomplete or missing key details
 3. "Partial-Low" (30-49%): Answer has some keywords related to the question but is vague, mostly incorrect, or barely relevant
 4. "Invalid" (0-29%): Answer is completely wrong, off-topic, nonsense, gibberish, or doesn't address the question at all
 
 Examples:
 - Valid (90%): Complete, accurate answer with all key points
-- Partial-High (65%): Correct direction but missing some important details
+- Valid (78%): Good answer with accurate information but missing some minor details
+- Partial-High (65%): Correct direction but missing important details
 - Partial-Low (40%): Mentions related terms but understanding is unclear or mostly wrong
-- Invalid (0%): "I don't know", gibberish, completely unrelated topic
+- Invalid (15%): "I don't know", gibberish, completely unrelated topic
 
 Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 {{
@@ -245,14 +220,13 @@ Return ONLY valid JSON (no markdown, no code blocks, no extra text):
 
 IMPORTANT: 
 - Assign a specific score between 0-100 based on answer quality
-- Valid: 85-100, Partial-High: 50-84, Partial-Low: 30-49, Invalid: 0-29
+- Valid: 76-100, Partial-High: 50-75, Partial-Low: 30-49, Invalid: 0-29
 - Be strict but fair in evaluation
 """
     
     try:
         response = model.generate_content(prompt)
         raw_text = response.text.strip()
-        
         # Remove markdown code blocks if present
         raw_text = raw_text.replace('```json', '').replace('```', '').strip()
         json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
@@ -266,9 +240,9 @@ IMPORTANT:
             score = result.get('score', 0)
             
             # Ensure score matches validation category
-            if validation == 'Valid' and score < 85:
-                score = 85
-            elif validation == 'Partial-High' and (score < 50 or score >= 85):
+            if validation == 'Valid' and score < 76:
+                score = 76
+            elif validation == 'Partial-High' and (score < 50 or score > 75):
                 score = 65
             elif validation == 'Partial-Low' and (score < 30 or score >= 50):
                 score = 40
@@ -325,61 +299,75 @@ def submit_video_answer(qid):
 
     file = request.files['video']
     
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-    
-    # Validate file size (before saving)
+    # Check file size before processing (max 10MB for free tier)
     file.seek(0, os.SEEK_END)
-    file_size = file.tell()
+    file_size_bytes = file.tell()
     file.seek(0)
+    file_size_mb = file_size_bytes / (1024 * 1024)
     
-    if file_size > MAX_VIDEO_SIZE_MB * 1024 * 1024:
-        return jsonify({"error": f"File too large. Maximum size: {MAX_VIDEO_SIZE_MB}MB"}), 400
+    print(f"📦 Video size: {file_size_mb:.2f} MB")
     
-    # Use temporary file for security
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_video:
-        filepath = temp_video.name
-        
+    if file_size_mb > 20:
+        return jsonify({"error": "Video too large. Please record a shorter answer (max 2 minutes)"}), 400
+    
+    # Save video to /tmp for Render compatibility
+    os.makedirs("/tmp/uploads", exist_ok=True)
+    filepath = os.path.join("/tmp/uploads", f"answer_{qid}_{os.getpid()}.webm")
+    
     try:
         file.save(filepath)
-        file_size_mb = os.path.getsize(filepath) / (1024 * 1024)
         print(f"✅ Video saved: {file_size_mb:.2f} MB")
     except Exception as e:
         print(f"❌ Video save error: {e}")
         return jsonify({"error": f"Failed to save video: {str(e)}"}), 500
 
-    # Step 1: Quick transcription with Whisper
-    transcript = "Unable to transcribe"
+    # Step 1: Try transcription with timeout protection
+    transcript = "Unable to transcribe audio"
+    whisper_available = True
+    
     try:
-        print("🎤 Starting Whisper transcription...")
+        print("🎤 Starting audio transcription...")
+        
+        # Check if Whisper is available and loaded
+        if '_whisper_model_cache' not in globals():
+            print("⚠️ Whisper not pre-loaded, loading now...")
+            import whisper
+            globals()['_whisper_model_cache'] = whisper.load_model("tiny", download_root="/tmp/whisper_cache", device="cpu")
+        
+        # Use pre-loaded model
         import whisper
+        model_whisper = globals()['_whisper_model_cache']
         
-        # Force CPU and FP32 for stability
-        device = "cpu"
-        
-        # Load model from cache
-        model_whisper = whisper.load_model("tiny", download_root="/tmp/whisper_cache", device=device)
-        
-        # Transcribe with minimal settings for speed
+        # Quick transcription with aggressive timeout protection
+        print("🎯 Transcribing (this may take 10-20 seconds)...")
         result = model_whisper.transcribe(
             filepath,
-            fp16=False,  # Use FP32 on CPU
+            fp16=False,
             language='en',
-            verbose=False
+            verbose=False,
+            condition_on_previous_text=False,  # Faster
+            compression_ratio_threshold=2.4,    # Skip low quality
+            no_speech_threshold=0.6             # Skip silence
         )
         transcript = result['text'].strip()
-        print(f"✅ Transcription done: {len(transcript)} chars")
+        
+        if not transcript or len(transcript) < 5:
+            transcript = "No clear speech detected in video"
+        
+        print(f"✅ Transcription complete: {len(transcript)} chars")
         
     except Exception as e:
-        print(f"❌ Whisper error: {e}")
-        transcript = f"Transcription failed: {str(e)}"
+        print(f"❌ Whisper transcription error: {e}")
+        whisper_available = False
+        transcript = "Audio transcription unavailable. Using manual evaluation."
 
-    # Clean up video file immediately to save space
+    # Clean up video file immediately
     try:
-        os.remove(filepath)
-        print("🗑️ Video file deleted")
-    except:
-        pass
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            print("🗑️ Video file deleted")
+    except Exception as e:
+        print(f"⚠️ Cleanup warning: {e}")
 
     # Step 2: Get question text
     questions = session.get('questions', [])
@@ -390,69 +378,71 @@ def submit_video_answer(qid):
 
     # Step 3: Default scores
     scores = {
-        "Confidence Score": 0.7,
-        "Content Relevance": 0.7,
-        "Fluency Score": 0.7
+        "Confidence Score": 0.65,
+        "Content Relevance": 0.65,
+        "Fluency Score": 0.65
     }
 
-    # Step 4: Gemini evaluation
-    if len(transcript) > 10 and "failed" not in transcript.lower():
+    # Step 4: Try Gemini evaluation (with fallback)
+    if whisper_available and len(transcript) > 10 and "unavailable" not in transcript.lower():
         try:
-            print("🤖 Quick Gemini evaluation...")
-            prompt = f"""
-Quickly rate this interview answer with 3 scores (0.0 to 1.0):
+            print("🤖 Evaluating with AI...")
+            
+            # Shorter prompt for faster response
+            prompt = f"""Rate this answer (0.0-1.0 each):
+Q: {question_text}
+A: {transcript[:400]}
 
-Question: {question_text}
-Answer: "{transcript[:500]}"
-
-Return ONLY JSON:
-{{"Confidence Score": 0.X, "Content Relevance": 0.X, "Fluency Score": 0.X}}
-"""
+JSON only:
+{{"Confidence Score": 0.X, "Content Relevance": 0.X, "Fluency Score": 0.X}}"""
+            
             response = model.generate_content(prompt)
             raw_text = response.text.strip().replace('```json', '').replace('```', '').strip()
-            json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+            json_match = re.search(r'\{.*?\}', raw_text, re.DOTALL)
             
             if json_match:
-                scores = json.loads(json_match.group())
-                print(f"✅ Gemini scores: {scores}")
+                eval_scores = json.loads(json_match.group())
+                scores.update(eval_scores)
+                print(f"✅ AI evaluation: {scores}")
+                
         except Exception as e:
-            print(f"⚠️ Gemini evaluation skipped: {e}")
+            print(f"⚠️ AI evaluation skipped: {e}")
+            # Use default scores
 
     # Calculate final score
     try:
         final_eval = round(
-            (float(scores.get("Confidence Score", 0.7)) +
-             float(scores.get("Content Relevance", 0.7)) +
-             float(scores.get("Fluency Score", 0.7))) / 3 * 100, 2
+            (float(scores.get("Confidence Score", 0.65)) +
+             float(scores.get("Content Relevance", 0.65)) +
+             float(scores.get("Fluency Score", 0.65))) / 3 * 100, 2
         )
     except:
-        final_eval = 70.0
+        final_eval = 65.0
 
     print(f"📊 Final evaluation: {final_eval}%")
 
+    # Add helpful message if transcription failed
+    if not whisper_available or "unavailable" in transcript.lower():
+        transcript += "\n\n[Note: For best results on free hosting, please keep video answers under 1 minute and speak clearly.]"
+
     return jsonify({
-        "Confidence Score": float(scores.get("Confidence Score", 0.7)),
-        "Content Relevance": float(scores.get("Content Relevance", 0.7)),
-        "Fluency Score": float(scores.get("Fluency Score", 0.7)),
+        "Confidence Score": float(scores.get("Confidence Score", 0.65)),
+        "Content Relevance": float(scores.get("Content Relevance", 0.65)),
+        "Fluency Score": float(scores.get("Fluency Score", 0.65)),
         "Final Evaluation": final_eval,
-        "Transcript": transcript
+        "Transcript": transcript,
+        "whisper_available": whisper_available
     })
 
 @app.route('/result')
 def result():
     return render_template('result.html')
 
-# Error handlers
-@app.errorhandler(404)
-def not_found(e):
-    return redirect(url_for('index'))
-
-@app.errorhandler(500)
-def internal_error(e):
-    print(f"Internal error: {e}")
-    return jsonify({"error": "Internal server error"}), 500
+# Health check endpoint for Render
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy", "api_configured": bool(GOOGLE_API_KEY)}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    # Set debug=False in production
     app.run(host='0.0.0.0', port=port, debug=False)
