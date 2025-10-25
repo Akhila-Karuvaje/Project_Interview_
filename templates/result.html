@@ -475,12 +475,12 @@
             const feedback = data.validation_result?.feedback || '';
             const correctAnswer = data.validation_result?.correct_answer || '';
             
-            // Get score from backend (ranges: Valid: 85-100, Partial: 30-84, Invalid: 0-29)
+            // Get score from backend (ranges: Valid: 76-100, Partial: 30-75, Invalid: 0-29)
             let score = data.validation_result?.score || 0;
             let scoreClass = '';
             
             // Determine color class based on score
-            if (score >= 85) {
+            if (score > 75) {
                 scoreClass = 'valid';
             } else if (score >= 30) {
                 scoreClass = 'partial';
@@ -499,7 +499,7 @@
             statusBadge.className = `status-badge ${scoreClass}`;
             
             // Display correct answer (if available and not perfect score)
-            if (correctAnswer && score < 85) {
+            if (correctAnswer && score <= 75) {
                 document.getElementById('correctAnswerSection').style.display = 'block';
                 document.getElementById('correctAnswerDisplay').textContent = correctAnswer;
             }
