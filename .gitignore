@@ -1,12 +1,43 @@
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
 .Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Virtual Environment
 env/
 venv/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application specific
 uploads/
 *.wav
 *.webm
+user_audio.wav
+answer_*.webm
+
+# Environment variables
 .env
-*.log
+.env.local
+
+# ML Models cache
+*.pkl
+/tmp/
